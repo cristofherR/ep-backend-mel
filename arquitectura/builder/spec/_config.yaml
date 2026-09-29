@@ -1,0 +1,7 @@
+schema: efectoancash
+descripcion: |
+  Schema (namespace PostgreSQL) dedicado del programa Efecto Áncash (MEL).
+  Aísla nuestro modelo de las bases existentes (bd_intranet, bd_analitica):
+  mismo servidor, namespaces separados → cero conflictos, y si se necesita,
+  se puede leer bd_intranet con nombre cualificado (solo lectura).
+  Cambiar de motor/nombre = editar esta línea.

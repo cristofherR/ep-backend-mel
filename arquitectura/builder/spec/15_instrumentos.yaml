@@ -1,0 +1,51 @@
+layer: instrumentos
+order: 15
+prefix: inst_
+dialect: postgres
+proyecto: _transversal
+descripcion: |
+  Capa 1b — Motor de instrumentos (encuestas y evaluaciones). Evita crear 30 tablas
+  de preguntas por proyecto: CCA (Docentes 30+4, Familias 24+2), MS (Docentes 24+3,
+  Familias 23+3, Estudiantes) y satisfacción (Item_1..5) se modelan como definición
+  de ítems + respuestas. Agregar un cuestionario nuevo = filas, no columnas.
+tables:
+  - name: inst_instrumento
+    nota: Definición de un cuestionario/evaluación.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: proyecto_id, type: "int", fk: "core_proyecto.id"}
+      - {name: codigo, type: "varchar(40)", notnull: true, unique: true, note: "CCA_DOCENTES, MS_FAMILIAS, SATISFACCION..."}
+      - {name: nombre, type: "nvarchar(160)", notnull: true}
+      - {name: publico, type: "varchar(20)", note: "docentes/familias/estudiantes/asistentes"}
+      - {name: n_preguntas, type: "smallint"}
+  - name: inst_item
+    nota: Ítem/pregunta del instrumento (Preg_1..N + abiertas).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: instrumento_id, type: "int", notnull: true, fk: "inst_instrumento.id"}
+      - {name: bloque, type: "nvarchar(60)", note: "Bloq_1..5 en MS"}
+      - {name: orden, type: "smallint", notnull: true}
+      - {name: codigo, type: "varchar(20)", note: "Preg_1, Pregunta_abierta_1"}
+      - {name: texto, type: "nvarchar(400)"}
+      - {name: tipo_respuesta, type: "varchar(20)", note: "escala/opcion/abierta/indicador"}
+  - name: inst_intento
+    nota: Aplicación de un instrumento (un respondente, una IE, un corte Pre/Post).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: instrumento_id, type: "int", notnull: true, fk: "inst_instrumento.id"}
+      - {name: ie_id, type: "int", fk: "core_ie.id"}
+      - {name: persona_id, type: "int", fk: "core_persona.id", note: "respondente (o NULL si es roster)"}
+      - {name: corte_id, type: "int", fk: "core_catalogo_item.id", note: "Pre test / Post test"}
+      - {name: fecha_aplicacion, type: "date"}
+      - {name: facilitador_id, type: "int", fk: "core_persona.id"}
+  - name: inst_respuesta
+    nota: Respuesta a un ítem (EAV tipado). Soporta escalas y abiertas.
+    columns:
+      - {name: id, type: "bigint", identity: true, pk: true}
+      - {name: intento_id, type: "int", notnull: true, fk: "inst_intento.id"}
+      - {name: item_id, type: "int", notnull: true, fk: "inst_item.id"}
+      - {name: valor_texto, type: "nvarchar(600)"}
+      - {name: valor_num, type: "decimal(6,2)"}
+indexes:
+  - {table: inst_respuesta, name: ix_inst_respuesta_intento, cols: [intento_id, item_id]}
+  - {table: inst_item, name: ix_inst_item_instrumento, cols: [instrumento_id, orden]}

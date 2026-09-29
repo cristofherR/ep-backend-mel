@@ -1,0 +1,27 @@
+# Credenciales: NUNCA versionar
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+_privado/
+
+# Datos reales (nunca al repo)
+*.xlsx
+*.xls
+*.zip
+*.docx
+*.pdf
+data/real/
+
+# Entornos y dependencias
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Salidas temporales y logs
+*.log
+*.tmp
+*.bak

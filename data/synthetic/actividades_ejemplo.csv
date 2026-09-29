@@ -1,0 +1,13 @@
+codigo,componente,ugt,periodo,estado,fecha_programada
+EJ-001,MS,UGT Huarmey,2026-T4,programado,2026-02-27
+EJ-002,QM,UGT Huallanca,2026-T1,ejecutado,2026-01-03
+EJ-003,PDLE,UGT San Marcos,2026-T1,ejecutado,2026-02-18
+EJ-004,PDLE,UGT Mina,2026-T1,ejecutado,2026-11-21
+EJ-005,PDL,UGT San Marcos,2026-T1,ejecutado,2026-01-18
+EJ-006,PDLD,UGT Huallanca,2026-T4,ejecutado,2026-09-04
+EJ-007,CCA,UGT Huarmey,2026-T1,ejecutado,2026-06-04
+EJ-008,QM,UGT Mina,2026-T2,cancelado,2026-11-18
+EJ-009,PDLE,UGT Huallanca,2026-T4,cancelado,2026-06-10
+EJ-010,LECTO,UGT Huarmey,2026-T2,programado,2026-10-10
+EJ-011,ACADEMIA,UGT Huallanca,2026-T4,reprogramado,2026-10-03
+EJ-012,QM,UGT San Marcos,2026-T2,reprogramado,2026-03-16

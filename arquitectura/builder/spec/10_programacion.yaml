@@ -1,0 +1,141 @@
+layer: programacion
+order: 10
+prefix: prog_
+dialect: postgres
+proyecto: EA
+descripcion: |
+  Capa 1 — Dominio "Gestión de territorio / POA". Migra las listas EA_POA (actividad
+  grande) y EA_Actividades (actividad pequeña) y agrega reporte + incidencia/alerta.
+  NO duplica lo que ya reporta bd_intranet (visitas): core_actividad.tipo permite
+  referenciar el registro de intranet en vez de recapturarlo.
+tables:
+  - name: prog_poa_actividad_grande
+    nota: >
+      Actividad grande del POA (anual/trimestral; puede repetirse por mes). Es la lista
+      EA_POA. Solo el Admin MEL la crea, edita y actualiza (visibilidad admin); lleva
+      auditoría. `anio` explícito para 2026 (datos actuales) y siguientes (2027+).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: anio, type: "smallint", notnull: true, note: "año de la actividad (2026, 2027…) — denormalizado para filtro/partición"}
+      - {name: componente_id, type: "int", fk: "core_componente.id"}
+      - {name: ugt_id, type: "int", fk: "core_ugt.id"}
+      - {name: ct_id, type: "int", fk: "core_ct.id"}
+      - {name: alcance_macro, type: "varchar(20)", note: "alcance 'Region' (no es UGT ni CT)"}
+      - {name: periodo_id, type: "int", fk: "core_periodo.id", note: "anio + trimestre + mes programado"}
+      - {name: nombre, type: "nvarchar(200)", notnull: true}
+      - {name: meta, type: "nvarchar(200)", note: "KR trimestral / resultado esperado"}
+      - {name: responsable_id, type: "int", fk: "core_usuario.id"}
+      - {name: actor_externo, type: "varchar(160)", note: "UGEL / Programa EA / IIEE focalizadas / Territorio / COPALE…"}
+      - {name: resultado_real, type: "nvarchar(max)"}
+      - {name: comentario, type: "nvarchar(max)"}
+      - {name: estado_id, type: "int", fk: "core_catalogo_item.id", note: "catálogo estado_grande (5)"}
+      - {name: visibilidad, type: "varchar(10)", default: "'admin'", note: "solo Admin MEL (ingreso/edición)"}
+      - {name: orden, type: "smallint"}
+      - {name: creado_por, type: "int", fk: "core_usuario.id"}
+      - {name: creado_en, type: "datetime2", default: "sysutcdatetime()"}
+      - {name: actualizado_por, type: "int", fk: "core_usuario.id"}
+      - {name: actualizado_en, type: "datetime2"}
+  - name: prog_actividad_pequena
+    nota: Actividad pequeña = una por actividad grande. La crean los usuarios.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: act_grande_id, type: "int", notnull: true, fk: "prog_poa_actividad_grande.id"}
+      - {name: ie_id, type: "int", fk: "core_ie.id"}
+      - {name: distrito, type: "nvarchar(80)"}
+      - {name: centro_poblado, type: "nvarchar(120)"}
+      - {name: centro_poblado_id, type: "int", fk: "core_centro_poblado.id", note: "catalogado; permite el filtro por CT"}
+      - {name: nivel, type: "nvarchar(20)"}
+      - {name: especifico, type: "nvarchar(240)"}
+      - {name: responsable_id, type: "int", fk: "core_usuario.id"}
+      - {name: fecha_programada, type: "datetime2"}
+      - {name: hora_inicio, type: "time(0)"}
+      - {name: estado_id, type: "int", fk: "core_catalogo_item.id", note: "catálogo estado_pequena"}
+  - name: prog_reporte
+    nota: Reporte de ejecución de una actividad pequeña (Guardar y enviar).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: act_pequena_id, type: "int", notnull: true, fk: "prog_actividad_pequena.id"}
+      - {name: descripcion, type: "nvarchar(max)"}
+      - {name: logro, type: "nvarchar(max)"}
+      - {name: n_docentes, type: "int", default: "0"}
+      - {name: n_familias, type: "int", default: "0"}
+      - {name: n_estudiantes, type: "int", default: "0"}
+      - {name: n_otros, type: "int", default: "0"}
+      - {name: estado, type: "varchar(20)", default: "'Pendiente'", note: "Pendiente/Enviado"}
+      - {name: enviado_en, type: "datetime2"}
+  - name: prog_incidencia
+    nota: "Incidencia o Alerta reportada (bloque dinámico del reporte). Categoría -> subcategoría."
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: reporte_id, type: "int", fk: "prog_reporte.id"}
+      - {name: tipo, type: "varchar(12)", notnull: true, note: "Incidencia/Alerta"}
+      - {name: categoria_id, type: "int", fk: "core_catalogo_item.id"}
+      - {name: subcategoria_id, type: "int", fk: "core_catalogo_item.id"}
+      - {name: nivel_semaforo_id, type: "int", fk: "core_catalogo_item.id", note: "Informativo..Prioritario"}
+      - {name: diagnostico_previo, type: "varchar(20)", note: "solo rama Alerta NEE"}
+      - {name: descripcion, type: "nvarchar(max)"}
+  - name: prog_indicador_mes
+    nota: Snapshot de indicadores de Portada por alcance (CT/UGT/usuario) y mes.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: alcance, type: "varchar(20)", notnull: true, note: "ugt/ct/usuario"}
+      - {name: alcance_id, type: "int"}
+      - {name: periodo_id, type: "int", fk: "core_periodo.id"}
+      - {name: programadas, type: "int", default: "0"}
+      - {name: reportadas, type: "int", default: "0"}
+  - name: prog_alerta_regla
+    nota: >
+      Regla de enrutamiento de alertas/incidencias (motor n8n). Define qué severidad
+      dispara una notificación y a qué roles. Permite escalado y re-notificación.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: nombre, type: "nvarchar(120)", notnull: true}
+      - {name: tipo, type: "varchar(12)", note: "Alerta / Incidencia / Ambos"}
+      - {name: nivel_semaforo_min_id, type: "int", fk: "core_catalogo_item.id", note: "severidad mínima (Informativo..Prioritario)"}
+      - {name: roles_destino, type: "varchar(160)", note: "códigos core_rol separados por coma: ct, jefe_territorial, formacion…"}
+      - {name: incluir_jefe, type: "bit", default: "1", note: "añadir Jefe Territorial del programa"}
+      - {name: canal, type: "varchar(20)", default: "'push'", note: "push / telegram / whatsapp / email"}
+      - {name: escalar_minutos, type: "int", note: "re-notificar si no se atiende en N min"}
+      - {name: activo, type: "bit", default: "1"}
+  - name: prog_notificacion
+    nota: >
+      Bandeja de salida (outbox) de notificaciones. Una fila por destinatario; n8n la
+      consume y marca el envío. Fuente del push al CT de la UGT y al Jefe Territorial.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: incidencia_id, type: "int", fk: "prog_incidencia.id"}
+      - {name: regla_id, type: "int", fk: "prog_alerta_regla.id"}
+      - {name: destinatario_id, type: "int", notnull: true, fk: "core_usuario.id"}
+      - {name: canal, type: "varchar(20)", default: "'push'"}
+      - {name: asunto, type: "nvarchar(200)"}
+      - {name: cuerpo, type: "nvarchar(max)"}
+      - {name: estado, type: "varchar(12)", default: "'pendiente'", note: "pendiente / enviado / error"}
+      - {name: intentos, type: "smallint", default: "0"}
+      - {name: enviado_en, type: "datetime2"}
+      - {name: error, type: "nvarchar(400)"}
+      - {name: creado_en, type: "datetime2", default: "sysutcdatetime()"}
+indexes:
+  - {table: prog_actividad_pequena, name: ix_prog_pequena_grande, cols: [act_grande_id, estado_id]}
+  - {table: prog_actividad_pequena, name: ix_prog_pequena_fecha, cols: [fecha_programada]}
+  - {table: prog_poa_actividad_grande, name: ix_prog_grande_anio, cols: [anio, componente_id, ugt_id]}
+  - {table: prog_notificacion, name: ix_prog_notif_estado, cols: [estado, creado_en]}
+views:
+  - name: vw_prog_agenda_proxima
+    sql: |
+      SELECT pe.id, pe.fecha_programada, ag.nombre AS actividad
+      FROM prog_actividad_pequena pe
+      JOIN prog_poa_actividad_grande ag ON ag.id = pe.act_grande_id
+      WHERE pe.estado_id IS NOT NULL
+      ORDER BY pe.fecha_programada ASC, ag.nombre ASC
+      LIMIT 5;
+  - name: vw_prog_poa_admin
+    sql: |
+      SELECT g.id, g.anio, c.nombre AS componente, u.nombre AS ugt, ct.id AS ct_id,
+             g.alcance_macro, p.trimestre, p.mes, g.nombre, g.meta,
+             g.actor_externo, g.resultado_real, g.comentario, e.etiqueta AS estado
+      FROM prog_poa_actividad_grande g
+      LEFT JOIN core_componente c ON c.id = g.componente_id
+      LEFT JOIN core_ugt u ON u.id = g.ugt_id
+      LEFT JOIN core_ct ct ON ct.id = g.ct_id
+      LEFT JOIN core_periodo p ON p.id = g.periodo_id
+      LEFT JOIN core_catalogo_item e ON e.id = g.estado_id;

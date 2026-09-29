@@ -1,0 +1,37 @@
+layer: pdle
+order: 40
+prefix: pdle_
+dialect: postgres
+proyecto: PDLE
+descripcion: |
+  Capa 4 — ESQUELETO PDLE (Programa de Liderazgo Estudiantil, componente PROG-7).
+  Aún SIN insumos (ni Sheet ni formularios). Se deja la forma para conectar cuando
+  lleguen los datos: reusa core_ie, core_sesion, core_persona e instrumentos.
+tables:
+  - name: pdle_programa_sesion
+    nota: Sesión de liderazgo estudiantil, ligada a una IE y a una etapa.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: core_sesion_id, type: "int", fk: "core_sesion.id"}
+      - {name: ie_id, type: "int", notnull: true, fk: "core_ie.id"}
+      - {name: etapa_id, type: "int", fk: "core_etapa.id"}
+      - {name: tema, type: "nvarchar(200)"}
+      - {name: n_participantes, type: "int", default: "0"}
+  - name: pdle_participante
+    nota: Estudiantes/líderes que participan en una sesión.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: pdle_programa_sesion_id, type: "int", notnull: true, fk: "pdle_programa_sesion.id"}
+      - {name: persona_id, type: "int", fk: "core_persona.id"}
+      - {name: rol_liderazgo, type: "nvarchar(80)"}
+      - {name: asistio, type: "bit", default: "0"}
+  - name: pdle_evaluacion
+    nota: Resultado por participante/indicador (instrumentos o ítems propios).
+    columns:
+      - {name: id, type: "bigint", identity: true, pk: true}
+      - {name: participante_id, type: "int", fk: "pdle_participante.id"}
+      - {name: intento_id, type: "int", fk: "inst_intento.id"}
+      - {name: indicador, type: "nvarchar(120)"}
+      - {name: valor, type: "decimal(6,2)"}
+indexes:
+  - {table: pdle_participante, name: ix_pdle_part_sesion, cols: [pdle_programa_sesion_id]}

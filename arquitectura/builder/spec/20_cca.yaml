@@ -1,0 +1,60 @@
+layer: cca
+order: 20
+prefix: cca_
+dialect: postgres
+proyecto: CCA
+descripcion: |
+  Capa 2 — Módulo CCA (Crecemos con Amor, primera infancia). Migra las 11 pestañas
+  del Sheet actual a tablas normalizadas. Encuestas (Familias/Docentes) viven en la
+  capa `instrumentos`; aquí queda la operación: roster, sesión, asistencia, seguimiento.
+tables:
+  - name: cca_roster
+    nota: Lista de personas por IE, reutilizada entre sesiones de esa IE.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: ie_id, type: "int", notnull: true, fk: "core_ie.id"}
+      - {name: persona_id, type: "int", fk: "core_persona.id", note: "NULL hasta consolidar persona por DNI"}
+      - {name: apellidos, type: "nvarchar(120)"}
+      - {name: nombres, type: "nvarchar(120)"}
+      - {name: dni, type: "varchar(12)"}
+      - {name: parentesco_id, type: "int", fk: "core_catalogo_item.id"}
+      - {name: estudiante_relacionado, type: "nvarchar(160)", note: "texto libre (nombre del hijo/a)"}
+      - {name: activo, type: "bit", default: "1"}
+  - name: cca_sesion
+    nota: Sesión ejecutada de familias (Reporte al día). Sustituye Cod_mirror/Mirror.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: core_sesion_id, type: "int", fk: "core_sesion.id"}
+      - {name: ie_id, type: "int", notnull: true, fk: "core_ie.id"}
+      - {name: etapa_id, type: "int", fk: "core_etapa.id"}
+      - {name: ciclo, type: "smallint"}
+      - {name: tema, type: "nvarchar(200)"}
+      - {name: publico_id, type: "int", fk: "core_catalogo_item.id"}
+      - {name: asist_familias, type: "int", default: "0"}
+      - {name: asist_docentes, type: "int", default: "0"}
+      - {name: asist_otros_cant, type: "int", default: "0"}
+      - {name: asist_otros_texto, type: "nvarchar(120)"}
+      - {name: desarrollo, type: "nvarchar(max)"}
+      - {name: incidencia_sn, type: "bit", default: "0"}
+      - {name: descripcion_incidencia, type: "nvarchar(max)"}
+      - {name: atencion_adicional, type: "nvarchar(max)"}
+  - name: cca_asistencia
+    nota: Asistencia persona x sesión + encuesta de satisfacción por asistente.
+    columns:
+      - {name: id, type: "bigint", identity: true, pk: true}
+      - {name: cca_sesion_id, type: "int", notnull: true, fk: "cca_sesion.id"}
+      - {name: roster_id, type: "int", notnull: true, fk: "cca_roster.id"}
+      - {name: asistio, type: "bit", default: "0"}
+      - {name: intento_satisfaccion_id, type: "int", fk: "inst_intento.id", note: "Item_1..5 + Sugerencias (ítems de SATISFACCION)"}
+  - name: cca_seguimiento_ie
+    nota: Hitos por IE (normaliza la pestaña Seguimiento ancha).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: ie_id, type: "int", notnull: true, fk: "core_ie.id"}
+      - {name: hito_id, type: "int", fk: "core_catalogo_item.id"}
+      - {name: estado_id, type: "int", fk: "core_catalogo_item.id"}
+      - {name: fecha, type: "date"}
+      - {name: responsable_id, type: "int", fk: "core_usuario.id"}
+indexes:
+  - {table: cca_asistencia, name: ix_cca_asist_sesion, cols: [cca_sesion_id]}
+  - {table: cca_roster, name: ix_cca_roster_ie, cols: [ie_id, activo]}

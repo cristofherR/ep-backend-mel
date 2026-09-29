@@ -1,0 +1,214 @@
+layer: core
+order: 0
+prefix: core_
+dialect: postgres
+proyecto: _transversal
+descripcion: |
+  Capa 0 — Núcleo transversal. Dimensiones y entidades compartidas por TODOS los
+  proyectos (programación, CCA, Mente Sana, PDLE, Academia Juvenil). Nada aquí es
+  específico de un proyecto. Es la base del "builder": crece solo.
+  La entidad institucional (IE × Nivel) vive en `core_ie` (fuente: padrón ESCALE, capa `padron`).
+tables:
+  - name: core_proyecto
+    nota: Iniciativas del programa (Efecto Áncash). `tipo` distingue PROGRAMA (nacional, secuencia anual, con participantes/núcleos) de PROYECTO (puntual, facilitadores/sesiones).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(20)", notnull: true, unique: true, note: "EA, CCA, MS, PDLE, AJ | PDL, QM, PDLD, LECTO"}
+      - {name: nombre, type: "nvarchar(120)", notnull: true}
+      - {name: tipo, type: "varchar(12)", default: "'proyecto'", note: "programa | proyecto"}
+      - {name: activo, type: "bit", default: "1"}
+  - name: core_componente
+    nota: "Catálogo PROG-0..9 / ECO-x con color oficial (fuente Power Apps)."
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(10)", notnull: true, unique: true, note: "PROG-5, ECO-2..."}
+      - {name: nombre, type: "nvarchar(120)", notnull: true}
+      - {name: color_hex, type: "char(7)", note: "#ad1457"}
+      - {name: proyecto_id, type: "int", fk: "core_proyecto.id", note: "componente dueño (CCA/MS/PDLE/AJ) o NULL si transversal"}
+      - {name: activo, type: "bit", default: "1"}
+  - name: core_ugt
+    nota: Unidad de Gestión Territorial (con color oficial). 5 UGT en el padrón.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(20)", notnull: true, unique: true}
+      - {name: nombre, type: "nvarchar(80)", notnull: true}
+      - {name: color_hex, type: "char(7)"}
+  - name: core_ct
+    nota: Coordinador Territorial. UGT Mina tiene 2 CT (CT1 = cuenca; CT2 = Huaripampa + Carhuayoc) -> CT es entidad propia, no columna. El CT define el filtro de territorio.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: persona_id, type: "int", fk: "core_persona.id"}
+      - {name: nombre, type: "nvarchar(120)", note: "etiqueta de alcance: 'UGT Mina (cuenca)' / 'UGT Mina (Huaripampa + Carhuayoc)'"}
+      - {name: ugt_id, type: "int", fk: "core_ugt.id", note: "NULL si es de alcance macro"}
+      - {name: alcance_macro, type: "bit", default: "0"}
+  - name: core_centro_poblado
+    nota: "Centro poblado. Pertenece a una UGT y a un CT (define el alcance del CT; p.ej. UGT Mina con 2 CT, cuenca vs Huaripampa + Carhuayoc)."
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: nombre, type: "nvarchar(120)", notnull: true}
+      - {name: alias, type: "nvarchar(120)", note: "variantes (p.ej. 'CENTRO' / 'CENTRAL')"}
+      - {name: distrito, type: "nvarchar(120)"}
+      - {name: provincia, type: "nvarchar(120)"}
+      - {name: ugt_id, type: "int", fk: "core_ugt.id"}
+      - {name: ct_id, type: "int", fk: "core_ct.id", note: "CT responsable (filtro por CT)"}
+      - {name: codigo, type: "varchar(20)", unique: true}
+  - name: core_persona
+    nota: Persona no-usuario (docente, familia, estudiante, facilitador). DNI natural + surrogate.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: dni, type: "varchar(12)", unique: true}
+      - {name: apellidos, type: "nvarchar(120)"}
+      - {name: nombres, type: "nvarchar(120)"}
+      - {name: telefono, type: "varchar(20)"}
+  - name: core_rol
+    nota: Roles de acceso (Admin MEL, CT, Facilitador, Jefe/Comunicaciones/Formación macro).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(30)", notnull: true, unique: true}
+      - {name: nombre, type: "nvarchar(80)", notnull: true}
+      - {name: es_macro, type: "bit", default: "0", note: "1 = no sujeto a territorio (todos los territorios)"}
+  - name: core_usuario
+    nota: Usuario de la app. Credenciales hasheadas; nunca PII expuesta.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: persona_id, type: "int", fk: "core_persona.id"}
+      - {name: email, type: "nvarchar(160)", notnull: true, unique: true}
+      - {name: hash_clave, type: "varchar(128)"}
+      - {name: rol_id, type: "int", fk: "core_rol.id"}
+      - {name: ugt_id, type: "int", fk: "core_ugt.id", note: "NULL si rol macro"}
+      - {name: push_token, type: "nvarchar(255)", note: "token FCM/n8n para push móvil (alertas/incidencias)"}
+      - {name: activo, type: "bit", default: "1"}
+  - name: core_usuario_alcance
+    nota: >
+      Alcance por usuario (M:N). Un usuario puede cubrir varias UGT (ej. Albert Moro 2 UGT;
+      CT dentro de UGT Mina se distingue por core_ct). Para roles programa/formación el
+      alcance puede depender del programa. Un usuario = un rol; N alcances.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: usuario_id, type: "int", notnull: true, fk: "core_usuario.id"}
+      - {name: ugt_id, type: "int", fk: "core_ugt.id"}
+      - {name: ct_id, type: "int", fk: "core_ct.id", note: "alcance de CT (caso UGT Mina)"}
+      - {name: programa_id, type: "int", fk: "core_proyecto.id", note: "alcance por programa (rol programa/formación)"}
+      - {name: activo, type: "bit", default: "1"}
+  - name: core_ie
+    nota: "IE x Nivel (entidad canónica). cod_mod = clave natural del padrón ESCALE; cod_unico = COD_Inst+Nivel (clave de MS). El detalle ESCALE completo vive en pad_escuela."
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: cod_mod, type: "varchar(20)", notnull: true, unique: true, note: "COD_MOD (padrón ESCALE)"}
+      - {name: cod_inst, type: "varchar(20)", notnull: true}
+      - {name: cod_unico, type: "varchar(40)", unique: true, note: "cod_inst || '-' || niv_mod"}
+      - {name: nombre, type: "nvarchar(200)", notnull: true}
+      - {name: niv_mod, type: "varchar(6)", note: "A2 Inicial, B0 Primaria, A5/F0..."}
+      - {name: nivel, type: "nvarchar(40)"}
+      - {name: ugt_id, type: "int", fk: "core_ugt.id"}
+      - {name: provincia, type: "nvarchar(60)"}
+      - {name: distrito, type: "nvarchar(60)"}
+      - {name: cen_poblado, type: "nvarchar(160)"}
+      - {name: lat, type: "decimal(9,6)"}
+      - {name: lon, type: "decimal(9,6)"}
+  - name: core_etapa
+    nota: Etapa del ciclo de intervención (Presentación, Aplicación, Cierre...).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(30)", notnull: true, unique: true}
+      - {name: nombre, type: "nvarchar(120)", notnull: true}
+  - name: core_periodo
+    nota: Granularidad temporal única (año/mes/quincena/semana/trimestre/corte).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: anio, type: "smallint", notnull: true}
+      - {name: mes, type: "tinyint"}
+      - {name: quincena, type: "tinyint", note: "CCA usa quincena"}
+      - {name: semana, type: "tinyint", note: "MS usa semana"}
+      - {name: trimestre, type: "tinyint"}
+      - {name: fecha_corte, type: "date"}
+  - name: core_catalogo
+    nota: Contenedor de catálogos genéricos (estado_grande, estado_pequena, parentesco, corte...).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: dominio, type: "varchar(40)", notnull: true, unique: true}
+      - {name: nombre, type: "nvarchar(120)", notnull: true}
+  - name: core_catalogo_item
+    nota: Ítems con etiqueta + color (alimenta semáforos y badges del UI).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: catalogo_id, type: "int", notnull: true, fk: "core_catalogo.id"}
+      - {name: codigo, type: "varchar(30)", notnull: true}
+      - {name: etiqueta, type: "nvarchar(120)", notnull: true}
+      - {name: color_hex, type: "char(7)"}
+      - {name: orden, type: "smallint"}
+  - name: core_actividad
+    nota: Núcleo de actividad (programada/ejecutada). Común a programación y proyectos.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: proyecto_id, type: "int", fk: "core_proyecto.id"}
+      - {name: componente_id, type: "int", fk: "core_componente.id"}
+      - {name: ugt_id, type: "int", fk: "core_ugt.id"}
+      - {name: escuela_id, type: "int", fk: "core_ie.id"}
+      - {name: periodo_id, type: "int", fk: "core_periodo.id"}
+      - {name: nombre, type: "nvarchar(200)", notnull: true}
+      - {name: tipo, type: "varchar(30)", note: "visita/sesion/reunion/evaluacion"}
+      - {name: estado_id, type: "int", fk: "core_catalogo_item.id"}
+      - {name: fecha_programada, type: "datetime2"}
+      - {name: fecha_ejecucion, type: "datetime2"}
+      - {name: responsable_id, type: "int", fk: "core_usuario.id"}
+  - name: core_sesion
+    nota: Sesión ejecutada (unidad que agrupa asistencia, evidencia, reporte). Reemplaza Cod_mirror.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: actividad_id, type: "int", fk: "core_actividad.id"}
+      - {name: numero, type: "smallint", note: "sesión 1, 2, 3..."}
+      - {name: fecha, type: "date"}
+      - {name: facilitador_id, type: "int", fk: "core_persona.id"}
+  - name: core_evidencia
+    nota: Archivo (imagen/PDF) ligado a sesión o reporte. FK real, no enlaces sueltos.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: sesion_id, type: "int", fk: "core_sesion.id"}
+      - {name: tipo_mime, type: "varchar(60)"}
+      - {name: nombre_archivo, type: "nvarchar(200)"}
+      - {name: url, type: "nvarchar(500)", note: "Azure Blob / storage"}
+      - {name: subido_por, type: "int", fk: "core_usuario.id"}
+      - {name: fecha, type: "datetime2", default: "SYSUTCDATETIME()"}
+  - name: core_comentario
+    nota: Comentario/sugerencia desde la Portada.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: usuario_id, type: "int", fk: "core_usuario.id"}
+      - {name: texto, type: "nvarchar(1000)", notnull: true}
+      - {name: fecha, type: "datetime2", default: "SYSUTCDATETIME()"}
+  - name: core_evento
+    nota: Auditoría append-only (reemplaza la hoja Historial).
+    columns:
+      - {name: id, type: "bigint", identity: true, pk: true}
+      - {name: entidad, type: "varchar(60)", notnull: true}
+      - {name: entidad_id, type: "bigint"}
+      - {name: accion, type: "varchar(20)", notnull: true}
+      - {name: usuario_id, type: "int", fk: "core_usuario.id"}
+      - {name: payload, type: "nvarchar(max)"}
+      - {name: fecha, type: "datetime2", default: "SYSUTCDATETIME()"}
+  - name: core_migracion
+    nota: Bitácora de migraciones aplicadas (versión + hash del archivo SQL). Permite saber qué está aplicado sin adivinar y crecer con seguridad.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: version, type: "varchar(20)", notnull: true, note: "NNN de la capa o del seed"}
+      - {name: archivo, type: "varchar(120)", notnull: true}
+      - {name: hash, type: "varchar(64)", note: "sha256 (16) del archivo aplicado"}
+      - {name: aplicado_en, type: "datetime2", default: "SYSUTCDATETIME()"}
+      - {name: nota, type: "nvarchar(300)"}
+indexes:
+  - {table: core_migracion, name: ux_core_migracion_archivo_hash, cols: [archivo, hash], unique: true}
+  - {table: core_ie, name: ix_core_ie_ugt, cols: [ugt_id, cod_unico]}
+  - {table: core_actividad, name: ix_core_actividad_periodo, cols: [periodo_id, estado_id]}
+  - {table: core_usuario, name: ix_core_usuario_email, cols: [email], unique: true}
+views:
+  - name: vw_reportabilidad
+    sql: |
+      SELECT p.anio, p.mes, a.ugt_id,
+             COUNT(*) AS programadas,
+             SUM(CASE WHEN a.fecha_ejecucion IS NOT NULL THEN 1 ELSE 0 END) AS reportadas,
+             ROUND(100.0 * SUM(CASE WHEN a.fecha_ejecucion IS NOT NULL THEN 1 ELSE 0 END)
+                  / NULLIF(COUNT(*),0), 2) AS pct_reportabilidad
+      FROM core_actividad a
+      JOIN core_periodo p ON p.id = a.periodo_id
+      GROUP BY p.anio, p.mes, a.ugt_id

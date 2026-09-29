@@ -1,0 +1,83 @@
+layer: padron
+order: 5
+prefix: pad_
+dialect: postgres
+proyecto: _transversal
+descripcion: |
+  Capa 0b — Padrón ESCALE (fuente OFICIAL de localización / IIEE). 1 fila = 1
+  COD_MOD (escuela x nivel); 4 983 filas, 3 016 IIEE. Reemplaza a LocalizacionEA:
+  incluye TODO el territorio (aunque no sea intervención) + las columnas de proyecto
+  (EA y componentes) = guía definitiva de a quién intervenimos. Cuelga de core_ie.
+tables:
+  - name: pad_escuela
+    nota: Detalle ESCALE por IE x Nivel (1:1 con core_ie). Clave natural = core_ie.cod_mod.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: core_ie_id, type: "int", notnull: true, unique: true, fk: "core_ie.id"}
+      - {name: anexo, type: "varchar(10)"}
+      - {name: cod_local, type: "varchar(20)"}
+      - {name: forma, type: "nvarchar(40)", note: "Escolarizada/No escolarizada"}
+      - {name: area_censo, type: "varchar(6)"}
+      - {name: des_area_censo, type: "nvarchar(20)", note: "Urbana/Rural"}
+      - {name: gestion, type: "varchar(6)"}
+      - {name: tipo_gestion, type: "nvarchar(60)", note: "Pública de gestión directa..."}
+      - {name: ges_dep, type: "varchar(10)"}
+      - {name: des_ges_dep, type: "nvarchar(60)"}
+      - {name: director, type: "nvarchar(160)"}
+      - {name: telefono, type: "varchar(30)"}
+      - {name: email, type: "nvarchar(160)"}
+      - {name: pagweb, type: "nvarchar(200)"}
+      - {name: direccion, type: "nvarchar(240)"}
+      - {name: localidad, type: "nvarchar(160)"}
+      - {name: codcp_inei, type: "varchar(20)"}
+      - {name: cod_ccpp, type: "varchar(20)"}
+      - {name: cod_geo, type: "varchar(20)"}
+      - {name: departamento, type: "nvarchar(60)"}
+      - {name: region, type: "nvarchar(60)"}
+      - {name: cod_ooii, type: "varchar(20)"}
+      - {name: dreugel, type: "nvarchar(120)", note: "D_DREUGEL"}
+      - {name: tipo_programa, type: "nvarchar(60)"}
+      - {name: cod_turno, type: "varchar(6)"}
+      - {name: turno, type: "nvarchar(30)"}
+      - {name: nro_ruc, type: "varchar(20)"}
+      - {name: razon_social, type: "nvarchar(200)"}
+      - {name: promotor, type: "nvarchar(200)"}
+      - {name: estado, type: "varchar(6)"}
+      - {name: des_estado, type: "nvarchar(30)", note: "Activo"}
+      - {name: fecha_registro, type: "date"}
+      - {name: fecha_actualiza, type: "date"}
+      - {name: zona_frontera, type: "nvarchar(20)"}
+      - {name: pais_colindante, type: "nvarchar(30)"}
+      - {name: vraem, type: "nvarchar(20)"}
+      - {name: inte_vraem, type: "nvarchar(20)"}
+      - {name: matricula_total, type: "int", note: "TALUM"}
+      - {name: matricula_hombres, type: "int", note: "TALUM_HOM"}
+      - {name: matricula_mujeres, type: "int", note: "TALUM_MUJ"}
+      - {name: n_docentes, type: "int", note: "TDOC"}
+      - {name: n_secciones, type: "int", note: "TSEC"}
+      - {name: cod_caracteristica, type: "varchar(10)"}
+      - {name: des_caracteristica, type: "nvarchar(60)", note: "Polidocente Completo..."}
+      - {name: es_efecto_ancash, type: "bit", default: "0", note: "col EA (Sí/blank)"}
+  - name: pad_escuela_componente
+    nota: Membresía IE x componente (cols PDL/QM/PDLD/LECTO/CCA/MS/ACADEMIA/PDLE).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: core_ie_id, type: "int", notnull: true, fk: "core_ie.id"}
+      - {name: componente_id, type: "int", notnull: true, fk: "core_componente.id"}
+      - {name: marca, type: "varchar(10)", note: "valor de la col (1, 2, 3...)"}
+      - {name: activo, type: "bit", default: "1"}
+indexes:
+  - {table: pad_escuela, name: ix_pad_escuela_dreugel, cols: [dreugel, des_area_censo]}
+  - {table: pad_escuela_componente, name: ix_pad_comp, cols: [core_ie_id, componente_id], unique: true}
+views:
+  - name: vw_ie_componente
+    sql: |
+      SELECT ec.core_ie_id, c.codigo AS componente, c.nombre AS componente_nombre, ec.marca
+      FROM pad_escuela_componente ec
+      JOIN core_componente c ON c.id = ec.componente_id
+  - name: vw_ie_intervencion
+    sql: |
+      SELECT ie.id AS core_ie_id, ie.cod_mod, ie.cod_unico, ie.nombre, ie.nivel, ie.ugt_id,
+             ec.componente, ec.marca
+      FROM core_ie ie
+      JOIN vw_ie_componente ec ON ec.core_ie_id = ie.id

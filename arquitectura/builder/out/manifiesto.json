@@ -1,0 +1,20 @@
+{
+  "schema": "efectoancash",
+  "generado_utc": "2026-09-29T18:05:41Z",
+  "capas": 10,
+  "tablas": 55,
+  "columnas": 433,
+  "archivos": {
+    "000_core.sql": "cf24042883d98a83",
+    "005_padron.sql": "0ffdbf6637b147da",
+    "010_programacion.sql": "22f0be3e99522712",
+    "015_instrumentos.sql": "e9e026418dda4e32",
+    "020_cca.sql": "1508cab990f3aacd",
+    "030_mente_sana.sql": "3c9e7f9eef44c73e",
+    "040_pdle.sql": "7ebc335193b9b814",
+    "050_academia_juvenil.sql": "731384e2cbce2544",
+    "060_analitica.sql": "e3063679ae4c3760",
+    "070_ui.sql": "e073982d018896fa",
+    "999_fk.sql": "19079acf971b0cf7"
+  }
+}

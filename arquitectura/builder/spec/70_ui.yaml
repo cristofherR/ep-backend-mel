@@ -1,0 +1,128 @@
+order: 70
+layer: ui
+prefix: "ui_"
+proyecto: "_transversal"
+dialect: postgres
+descripcion: >
+  Capa 7 — Configuración de interfaz (data-driven UI). Todo lo que en un front
+  suele ir "hardcodeado" (labels, títulos, fuentes, tamaños, orden/fijado de
+  elementos) vive aquí como DATOS, no como código. Permite editar textos, mover
+  o fijar bloques, cambiar tipografía/tamaños y reordenar pantallas SIN
+  recompilar ni re-desplegar. Es el punto de extensión para UI/UX.
+
+tables:
+
+  - name: ui_idioma
+    nota: Idiomas soportados. Hoy solo 'es'; la estructura ya admite más sin romper textos.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(8)", notnull: true, unique: true, note: "es, en, qu (ISO 639-1)"}
+      - {name: nombre, type: "nvarchar(60)", notnull: true}
+      - {name: activo, type: "bit", default: "1"}
+
+  - name: ui_texto
+    nota: Diccionario de labels/títulos/tooltips editables por clave. Traduce cada texto de la app sin tocar el código.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: clave, type: "varchar(120)", notnull: true, note: "ej. login.titulo, nav.programacion"}
+      - {name: idioma_id, type: "int", fk: "ui_idioma.id", notnull: true}
+      - {name: valor, type: "nvarchar(1000)", notnull: true}
+      - {name: contexto, type: "varchar(60)", note: "agrupador: login, nav, cca, ms, indicadores..."}
+      - {name: nota, type: "nvarchar(300)"}
+    indexes:
+      - {name: ux_ui_texto_clave_idioma, cols: [clave, idioma_id], unique: true}
+
+  - name: ui_tema
+    nota: Conjuntos de tokens visuales (temas). Uno es el default; se puede cambiar sin tocar el front.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(40)", notnull: true, unique: true, note: "base, alto-contraste, oscuro..."}
+      - {name: nombre, type: "nvarchar(80)", notnull: true}
+      - {name: es_default, type: "bit", default: "0"}
+      - {name: activo, type: "bit", default: "1"}
+
+  - name: ui_tema_token
+    nota: "Tokens de diseño (design tokens): fuentes, tamaños, colores, radios, espacios. Equivale a las variables CSS pero como datos."
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: tema_id, type: "int", fk: "ui_tema.id", notnull: true}
+      - {name: token, type: "varchar(60)", notnull: true, note: "ej. --fuente-base, --fs-lg, --color-primario"}
+      - {name: valor, type: "varchar(200)", notnull: true}
+      - {name: tipo, type: "varchar(20)", note: "font | size | color | spacing | radius | shadow"}
+      - {name: grupo, type: "varchar(40)", note: "tipografia, color, layout..."}
+      - {name: nota, type: "nvarchar(300)"}
+    indexes:
+      - {name: ux_ui_token_tema, cols: [tema_id, token], unique: true}
+
+  - name: ui_vista
+    nota: Pantallas/rutas de la app PWA. Orden y visibilidad configurables; rol_id define quién la ve.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: codigo, type: "varchar(40)", notnull: true, unique: true, note: "programacion, cca, mente_sana, indicadores..."}
+      - {name: ruta, type: "varchar(120)", note: "hash route o path"}
+      - {name: titulo_clave, type: "varchar(120)", note: "clave en ui_texto (no texto duro)"}
+      - {name: icono, type: "varchar(60)"}
+      - {name: orden, type: "int", default: "0"}
+      - {name: activo, type: "bit", default: "1"}
+      - {name: rol_id, type: "int", fk: "core_rol.id", note: "NULL = todos"}
+
+  - name: ui_bloque
+    nota: Secciones dentro de una vista. `fijo` = se queda pegado (sticky) al hacer scroll; `orden` = posición. Mover/fijar = editar filas, no HTML.
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: vista_id, type: "int", fk: "ui_vista.id", notnull: true}
+      - {name: codigo, type: "varchar(60)", notnull: true}
+      - {name: titulo_clave, type: "varchar(120)"}
+      - {name: tipo, type: "varchar(30)", note: "kpis | filtros | tabla | grafico | formulario | agenda"}
+      - {name: orden, type: "int", default: "0"}
+      - {name: fijo, type: "bit", default: "0", note: "sticky"}
+      - {name: visible, type: "bit", default: "1"}
+      - {name: ancho, type: "varchar(12)", note: "full | half | third"}
+      - {name: config, type: "nvarchar(max)", note: "JSON libre del bloque"}
+    indexes:
+      - {name: ux_ui_bloque_vista_codigo, cols: [vista_id, codigo], unique: true}
+
+  - name: ui_elemento
+    nota: Componente concreto dentro de un bloque (KPI, columna, serie). `fuente_dato` apunta a una vista/consulta del schema; `config` = JSON (colores, umbrales, formato).
+    columns:
+      - {name: id, type: "int", identity: true, pk: true}
+      - {name: bloque_id, type: "int", fk: "ui_bloque.id", notnull: true}
+      - {name: clave, type: "varchar(60)", notnull: true}
+      - {name: tipo, type: "varchar(30)", note: "kpi | barra | linea | tabla_col | campo"}
+      - {name: titulo_clave, type: "varchar(120)"}
+      - {name: fuente_dato, type: "varchar(120)", note: "vista/consulta (ej. vw_resumen_ct)"}
+      - {name: orden, type: "int", default: "0"}
+      - {name: visible, type: "bit", default: "1"}
+      - {name: config, type: "nvarchar(max)", note: "JSON: umbrales, formato, colores"}
+    indexes:
+      - {name: ux_ui_elemento_bloque_clave, cols: [bloque_id, clave], unique: true}
+
+views:
+
+  - name: vw_ui_textos
+    sql: |
+      SELECT t.clave, t.contexto, t.valor, i.codigo AS idioma
+        FROM ui_texto t
+        JOIN ui_idioma i ON i.id = t.idioma_id
+       WHERE i.activo = true
+
+  - name: vw_ui_tema_activo
+    sql: |
+      SELECT tk.token, tk.valor, tk.tipo, tk.grupo, t.codigo AS tema
+        FROM ui_tema_token tk
+        JOIN ui_tema t ON t.id = tk.tema_id
+       WHERE t.activo = true
+         AND t.es_default = true
+
+  - name: vw_ui_pantalla
+    sql: |
+      SELECT v.codigo AS vista, v.ruta, v.orden AS vista_orden,
+             b.codigo AS bloque, b.tipo AS bloque_tipo, b.orden AS bloque_orden,
+             b.fijo, b.visible AS bloque_visible, b.ancho,
+             e.clave AS elemento, e.tipo AS elemento_tipo, e.orden AS elemento_orden,
+             e.fuente_dato, e.visible AS elemento_visible
+        FROM ui_vista v
+        JOIN ui_bloque b   ON b.vista_id = v.id
+        LEFT JOIN ui_elemento e ON e.bloque_id = b.id
+       WHERE v.activo = true AND b.visible = true
+       ORDER BY v.orden, b.orden, e.orden

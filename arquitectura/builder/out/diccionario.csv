@@ -1,0 +1,434 @@
+esquema,capa,tabla,columna,tipo,pk,fk,notnull,nota
+efectoancash,core,core_proyecto,id,int,S,,,
+efectoancash,core,core_proyecto,codigo,varchar(20),,,S,"EA, CCA, MS, PDLE, AJ | PDL, QM, PDLD, LECTO"
+efectoancash,core,core_proyecto,nombre,nvarchar(120),,,S,
+efectoancash,core,core_proyecto,tipo,varchar(12),,,,programa | proyecto
+efectoancash,core,core_proyecto,activo,bit,,,,
+efectoancash,core,core_componente,id,int,S,,,
+efectoancash,core,core_componente,codigo,varchar(10),,,S,"PROG-5, ECO-2..."
+efectoancash,core,core_componente,nombre,nvarchar(120),,,S,
+efectoancash,core,core_componente,color_hex,char(7),,,,#ad1457
+efectoancash,core,core_componente,proyecto_id,int,,core_proyecto.id,,componente dueño (CCA/MS/PDLE/AJ) o NULL si transversal
+efectoancash,core,core_componente,activo,bit,,,,
+efectoancash,core,core_ugt,id,int,S,,,
+efectoancash,core,core_ugt,codigo,varchar(20),,,S,
+efectoancash,core,core_ugt,nombre,nvarchar(80),,,S,
+efectoancash,core,core_ugt,color_hex,char(7),,,,
+efectoancash,core,core_ct,id,int,S,,,
+efectoancash,core,core_ct,persona_id,int,,core_persona.id,,
+efectoancash,core,core_ct,nombre,nvarchar(120),,,,etiqueta de alcance: 'UGT Mina (cuenca)' / 'UGT Mina (Huaripampa + Carhuayoc)'
+efectoancash,core,core_ct,ugt_id,int,,core_ugt.id,,NULL si es de alcance macro
+efectoancash,core,core_ct,alcance_macro,bit,,,,
+efectoancash,core,core_centro_poblado,id,int,S,,,
+efectoancash,core,core_centro_poblado,nombre,nvarchar(120),,,S,
+efectoancash,core,core_centro_poblado,alias,nvarchar(120),,,,variantes (p.ej. 'CENTRO' / 'CENTRAL')
+efectoancash,core,core_centro_poblado,distrito,nvarchar(120),,,,
+efectoancash,core,core_centro_poblado,provincia,nvarchar(120),,,,
+efectoancash,core,core_centro_poblado,ugt_id,int,,core_ugt.id,,
+efectoancash,core,core_centro_poblado,ct_id,int,,core_ct.id,,CT responsable (filtro por CT)
+efectoancash,core,core_centro_poblado,codigo,varchar(20),,,,
+efectoancash,core,core_persona,id,int,S,,,
+efectoancash,core,core_persona,dni,varchar(12),,,,
+efectoancash,core,core_persona,apellidos,nvarchar(120),,,,
+efectoancash,core,core_persona,nombres,nvarchar(120),,,,
+efectoancash,core,core_persona,telefono,varchar(20),,,,
+efectoancash,core,core_rol,id,int,S,,,
+efectoancash,core,core_rol,codigo,varchar(30),,,S,
+efectoancash,core,core_rol,nombre,nvarchar(80),,,S,
+efectoancash,core,core_rol,es_macro,bit,,,,1 = no sujeto a territorio (todos los territorios)
+efectoancash,core,core_usuario,id,int,S,,,
+efectoancash,core,core_usuario,persona_id,int,,core_persona.id,,
+efectoancash,core,core_usuario,email,nvarchar(160),,,S,
+efectoancash,core,core_usuario,hash_clave,varchar(128),,,,
+efectoancash,core,core_usuario,rol_id,int,,core_rol.id,,
+efectoancash,core,core_usuario,ugt_id,int,,core_ugt.id,,NULL si rol macro
+efectoancash,core,core_usuario,push_token,nvarchar(255),,,,token FCM/n8n para push móvil (alertas/incidencias)
+efectoancash,core,core_usuario,activo,bit,,,,
+efectoancash,core,core_usuario_alcance,id,int,S,,,
+efectoancash,core,core_usuario_alcance,usuario_id,int,,core_usuario.id,S,
+efectoancash,core,core_usuario_alcance,ugt_id,int,,core_ugt.id,,
+efectoancash,core,core_usuario_alcance,ct_id,int,,core_ct.id,,alcance de CT (caso UGT Mina)
+efectoancash,core,core_usuario_alcance,programa_id,int,,core_proyecto.id,,alcance por programa (rol programa/formación)
+efectoancash,core,core_usuario_alcance,activo,bit,,,,
+efectoancash,core,core_ie,id,int,S,,,
+efectoancash,core,core_ie,cod_mod,varchar(20),,,S,COD_MOD (padrón ESCALE)
+efectoancash,core,core_ie,cod_inst,varchar(20),,,S,
+efectoancash,core,core_ie,cod_unico,varchar(40),,,,cod_inst || '-' || niv_mod
+efectoancash,core,core_ie,nombre,nvarchar(200),,,S,
+efectoancash,core,core_ie,niv_mod,varchar(6),,,,"A2 Inicial, B0 Primaria, A5/F0..."
+efectoancash,core,core_ie,nivel,nvarchar(40),,,,
+efectoancash,core,core_ie,ugt_id,int,,core_ugt.id,,
+efectoancash,core,core_ie,provincia,nvarchar(60),,,,
+efectoancash,core,core_ie,distrito,nvarchar(60),,,,
+efectoancash,core,core_ie,cen_poblado,nvarchar(160),,,,
+efectoancash,core,core_ie,lat,"decimal(9,6)",,,,
+efectoancash,core,core_ie,lon,"decimal(9,6)",,,,
+efectoancash,core,core_etapa,id,int,S,,,
+efectoancash,core,core_etapa,codigo,varchar(30),,,S,
+efectoancash,core,core_etapa,nombre,nvarchar(120),,,S,
+efectoancash,core,core_periodo,id,int,S,,,
+efectoancash,core,core_periodo,anio,smallint,,,S,
+efectoancash,core,core_periodo,mes,tinyint,,,,
+efectoancash,core,core_periodo,quincena,tinyint,,,,CCA usa quincena
+efectoancash,core,core_periodo,semana,tinyint,,,,MS usa semana
+efectoancash,core,core_periodo,trimestre,tinyint,,,,
+efectoancash,core,core_periodo,fecha_corte,date,,,,
+efectoancash,core,core_catalogo,id,int,S,,,
+efectoancash,core,core_catalogo,dominio,varchar(40),,,S,
+efectoancash,core,core_catalogo,nombre,nvarchar(120),,,S,
+efectoancash,core,core_catalogo_item,id,int,S,,,
+efectoancash,core,core_catalogo_item,catalogo_id,int,,core_catalogo.id,S,
+efectoancash,core,core_catalogo_item,codigo,varchar(30),,,S,
+efectoancash,core,core_catalogo_item,etiqueta,nvarchar(120),,,S,
+efectoancash,core,core_catalogo_item,color_hex,char(7),,,,
+efectoancash,core,core_catalogo_item,orden,smallint,,,,
+efectoancash,core,core_actividad,id,int,S,,,
+efectoancash,core,core_actividad,proyecto_id,int,,core_proyecto.id,,
+efectoancash,core,core_actividad,componente_id,int,,core_componente.id,,
+efectoancash,core,core_actividad,ugt_id,int,,core_ugt.id,,
+efectoancash,core,core_actividad,escuela_id,int,,core_ie.id,,
+efectoancash,core,core_actividad,periodo_id,int,,core_periodo.id,,
+efectoancash,core,core_actividad,nombre,nvarchar(200),,,S,
+efectoancash,core,core_actividad,tipo,varchar(30),,,,visita/sesion/reunion/evaluacion
+efectoancash,core,core_actividad,estado_id,int,,core_catalogo_item.id,,
+efectoancash,core,core_actividad,fecha_programada,datetime2,,,,
+efectoancash,core,core_actividad,fecha_ejecucion,datetime2,,,,
+efectoancash,core,core_actividad,responsable_id,int,,core_usuario.id,,
+efectoancash,core,core_sesion,id,int,S,,,
+efectoancash,core,core_sesion,actividad_id,int,,core_actividad.id,,
+efectoancash,core,core_sesion,numero,smallint,,,,"sesión 1, 2, 3..."
+efectoancash,core,core_sesion,fecha,date,,,,
+efectoancash,core,core_sesion,facilitador_id,int,,core_persona.id,,
+efectoancash,core,core_evidencia,id,int,S,,,
+efectoancash,core,core_evidencia,sesion_id,int,,core_sesion.id,,
+efectoancash,core,core_evidencia,tipo_mime,varchar(60),,,,
+efectoancash,core,core_evidencia,nombre_archivo,nvarchar(200),,,,
+efectoancash,core,core_evidencia,url,nvarchar(500),,,,Azure Blob / storage
+efectoancash,core,core_evidencia,subido_por,int,,core_usuario.id,,
+efectoancash,core,core_evidencia,fecha,datetime2,,,,
+efectoancash,core,core_comentario,id,int,S,,,
+efectoancash,core,core_comentario,usuario_id,int,,core_usuario.id,,
+efectoancash,core,core_comentario,texto,nvarchar(1000),,,S,
+efectoancash,core,core_comentario,fecha,datetime2,,,,
+efectoancash,core,core_evento,id,bigint,S,,,
+efectoancash,core,core_evento,entidad,varchar(60),,,S,
+efectoancash,core,core_evento,entidad_id,bigint,,,,
+efectoancash,core,core_evento,accion,varchar(20),,,S,
+efectoancash,core,core_evento,usuario_id,int,,core_usuario.id,,
+efectoancash,core,core_evento,payload,nvarchar(max),,,,
+efectoancash,core,core_evento,fecha,datetime2,,,,
+efectoancash,core,core_migracion,id,int,S,,,
+efectoancash,core,core_migracion,version,varchar(20),,,S,NNN de la capa o del seed
+efectoancash,core,core_migracion,archivo,varchar(120),,,S,
+efectoancash,core,core_migracion,hash,varchar(64),,,,sha256 (16) del archivo aplicado
+efectoancash,core,core_migracion,aplicado_en,datetime2,,,,
+efectoancash,core,core_migracion,nota,nvarchar(300),,,,
+efectoancash,padron,pad_escuela,id,int,S,,,
+efectoancash,padron,pad_escuela,core_ie_id,int,,core_ie.id,S,
+efectoancash,padron,pad_escuela,anexo,varchar(10),,,,
+efectoancash,padron,pad_escuela,cod_local,varchar(20),,,,
+efectoancash,padron,pad_escuela,forma,nvarchar(40),,,,Escolarizada/No escolarizada
+efectoancash,padron,pad_escuela,area_censo,varchar(6),,,,
+efectoancash,padron,pad_escuela,des_area_censo,nvarchar(20),,,,Urbana/Rural
+efectoancash,padron,pad_escuela,gestion,varchar(6),,,,
+efectoancash,padron,pad_escuela,tipo_gestion,nvarchar(60),,,,Pública de gestión directa...
+efectoancash,padron,pad_escuela,ges_dep,varchar(10),,,,
+efectoancash,padron,pad_escuela,des_ges_dep,nvarchar(60),,,,
+efectoancash,padron,pad_escuela,director,nvarchar(160),,,,
+efectoancash,padron,pad_escuela,telefono,varchar(30),,,,
+efectoancash,padron,pad_escuela,email,nvarchar(160),,,,
+efectoancash,padron,pad_escuela,pagweb,nvarchar(200),,,,
+efectoancash,padron,pad_escuela,direccion,nvarchar(240),,,,
+efectoancash,padron,pad_escuela,localidad,nvarchar(160),,,,
+efectoancash,padron,pad_escuela,codcp_inei,varchar(20),,,,
+efectoancash,padron,pad_escuela,cod_ccpp,varchar(20),,,,
+efectoancash,padron,pad_escuela,cod_geo,varchar(20),,,,
+efectoancash,padron,pad_escuela,departamento,nvarchar(60),,,,
+efectoancash,padron,pad_escuela,region,nvarchar(60),,,,
+efectoancash,padron,pad_escuela,cod_ooii,varchar(20),,,,
+efectoancash,padron,pad_escuela,dreugel,nvarchar(120),,,,D_DREUGEL
+efectoancash,padron,pad_escuela,tipo_programa,nvarchar(60),,,,
+efectoancash,padron,pad_escuela,cod_turno,varchar(6),,,,
+efectoancash,padron,pad_escuela,turno,nvarchar(30),,,,
+efectoancash,padron,pad_escuela,nro_ruc,varchar(20),,,,
+efectoancash,padron,pad_escuela,razon_social,nvarchar(200),,,,
+efectoancash,padron,pad_escuela,promotor,nvarchar(200),,,,
+efectoancash,padron,pad_escuela,estado,varchar(6),,,,
+efectoancash,padron,pad_escuela,des_estado,nvarchar(30),,,,Activo
+efectoancash,padron,pad_escuela,fecha_registro,date,,,,
+efectoancash,padron,pad_escuela,fecha_actualiza,date,,,,
+efectoancash,padron,pad_escuela,zona_frontera,nvarchar(20),,,,
+efectoancash,padron,pad_escuela,pais_colindante,nvarchar(30),,,,
+efectoancash,padron,pad_escuela,vraem,nvarchar(20),,,,
+efectoancash,padron,pad_escuela,inte_vraem,nvarchar(20),,,,
+efectoancash,padron,pad_escuela,matricula_total,int,,,,TALUM
+efectoancash,padron,pad_escuela,matricula_hombres,int,,,,TALUM_HOM
+efectoancash,padron,pad_escuela,matricula_mujeres,int,,,,TALUM_MUJ
+efectoancash,padron,pad_escuela,n_docentes,int,,,,TDOC
+efectoancash,padron,pad_escuela,n_secciones,int,,,,TSEC
+efectoancash,padron,pad_escuela,cod_caracteristica,varchar(10),,,,
+efectoancash,padron,pad_escuela,des_caracteristica,nvarchar(60),,,,Polidocente Completo...
+efectoancash,padron,pad_escuela,es_efecto_ancash,bit,,,,col EA (Sí/blank)
+efectoancash,padron,pad_escuela_componente,id,int,S,,,
+efectoancash,padron,pad_escuela_componente,core_ie_id,int,,core_ie.id,S,
+efectoancash,padron,pad_escuela_componente,componente_id,int,,core_componente.id,S,
+efectoancash,padron,pad_escuela_componente,marca,varchar(10),,,,"valor de la col (1, 2, 3...)"
+efectoancash,padron,pad_escuela_componente,activo,bit,,,,
+efectoancash,programacion,prog_poa_actividad_grande,id,int,S,,,
+efectoancash,programacion,prog_poa_actividad_grande,anio,smallint,,,S,"año de la actividad (2026, 2027…) — denormalizado para filtro/partición"
+efectoancash,programacion,prog_poa_actividad_grande,componente_id,int,,core_componente.id,,
+efectoancash,programacion,prog_poa_actividad_grande,ugt_id,int,,core_ugt.id,,
+efectoancash,programacion,prog_poa_actividad_grande,ct_id,int,,core_ct.id,,
+efectoancash,programacion,prog_poa_actividad_grande,alcance_macro,varchar(20),,,,alcance 'Region' (no es UGT ni CT)
+efectoancash,programacion,prog_poa_actividad_grande,periodo_id,int,,core_periodo.id,,anio + trimestre + mes programado
+efectoancash,programacion,prog_poa_actividad_grande,nombre,nvarchar(200),,,S,
+efectoancash,programacion,prog_poa_actividad_grande,meta,nvarchar(200),,,,KR trimestral / resultado esperado
+efectoancash,programacion,prog_poa_actividad_grande,responsable_id,int,,core_usuario.id,,
+efectoancash,programacion,prog_poa_actividad_grande,actor_externo,varchar(160),,,,UGEL / Programa EA / IIEE focalizadas / Territorio / COPALE…
+efectoancash,programacion,prog_poa_actividad_grande,resultado_real,nvarchar(max),,,,
+efectoancash,programacion,prog_poa_actividad_grande,comentario,nvarchar(max),,,,
+efectoancash,programacion,prog_poa_actividad_grande,estado_id,int,,core_catalogo_item.id,,catálogo estado_grande (5)
+efectoancash,programacion,prog_poa_actividad_grande,visibilidad,varchar(10),,,,solo Admin MEL (ingreso/edición)
+efectoancash,programacion,prog_poa_actividad_grande,orden,smallint,,,,
+efectoancash,programacion,prog_poa_actividad_grande,creado_por,int,,core_usuario.id,,
+efectoancash,programacion,prog_poa_actividad_grande,creado_en,datetime2,,,,
+efectoancash,programacion,prog_poa_actividad_grande,actualizado_por,int,,core_usuario.id,,
+efectoancash,programacion,prog_poa_actividad_grande,actualizado_en,datetime2,,,,
+efectoancash,programacion,prog_actividad_pequena,id,int,S,,,
+efectoancash,programacion,prog_actividad_pequena,act_grande_id,int,,prog_poa_actividad_grande.id,S,
+efectoancash,programacion,prog_actividad_pequena,ie_id,int,,core_ie.id,,
+efectoancash,programacion,prog_actividad_pequena,distrito,nvarchar(80),,,,
+efectoancash,programacion,prog_actividad_pequena,centro_poblado,nvarchar(120),,,,
+efectoancash,programacion,prog_actividad_pequena,centro_poblado_id,int,,core_centro_poblado.id,,catalogado; permite el filtro por CT
+efectoancash,programacion,prog_actividad_pequena,nivel,nvarchar(20),,,,
+efectoancash,programacion,prog_actividad_pequena,especifico,nvarchar(240),,,,
+efectoancash,programacion,prog_actividad_pequena,responsable_id,int,,core_usuario.id,,
+efectoancash,programacion,prog_actividad_pequena,fecha_programada,datetime2,,,,
+efectoancash,programacion,prog_actividad_pequena,hora_inicio,time(0),,,,
+efectoancash,programacion,prog_actividad_pequena,estado_id,int,,core_catalogo_item.id,,catálogo estado_pequena
+efectoancash,programacion,prog_reporte,id,int,S,,,
+efectoancash,programacion,prog_reporte,act_pequena_id,int,,prog_actividad_pequena.id,S,
+efectoancash,programacion,prog_reporte,descripcion,nvarchar(max),,,,
+efectoancash,programacion,prog_reporte,logro,nvarchar(max),,,,
+efectoancash,programacion,prog_reporte,n_docentes,int,,,,
+efectoancash,programacion,prog_reporte,n_familias,int,,,,
+efectoancash,programacion,prog_reporte,n_estudiantes,int,,,,
+efectoancash,programacion,prog_reporte,n_otros,int,,,,
+efectoancash,programacion,prog_reporte,estado,varchar(20),,,,Pendiente/Enviado
+efectoancash,programacion,prog_reporte,enviado_en,datetime2,,,,
+efectoancash,programacion,prog_incidencia,id,int,S,,,
+efectoancash,programacion,prog_incidencia,reporte_id,int,,prog_reporte.id,,
+efectoancash,programacion,prog_incidencia,tipo,varchar(12),,,S,Incidencia/Alerta
+efectoancash,programacion,prog_incidencia,categoria_id,int,,core_catalogo_item.id,,
+efectoancash,programacion,prog_incidencia,subcategoria_id,int,,core_catalogo_item.id,,
+efectoancash,programacion,prog_incidencia,nivel_semaforo_id,int,,core_catalogo_item.id,,Informativo..Prioritario
+efectoancash,programacion,prog_incidencia,diagnostico_previo,varchar(20),,,,solo rama Alerta NEE
+efectoancash,programacion,prog_incidencia,descripcion,nvarchar(max),,,,
+efectoancash,programacion,prog_indicador_mes,id,int,S,,,
+efectoancash,programacion,prog_indicador_mes,alcance,varchar(20),,,S,ugt/ct/usuario
+efectoancash,programacion,prog_indicador_mes,alcance_id,int,,,,
+efectoancash,programacion,prog_indicador_mes,periodo_id,int,,core_periodo.id,,
+efectoancash,programacion,prog_indicador_mes,programadas,int,,,,
+efectoancash,programacion,prog_indicador_mes,reportadas,int,,,,
+efectoancash,programacion,prog_alerta_regla,id,int,S,,,
+efectoancash,programacion,prog_alerta_regla,nombre,nvarchar(120),,,S,
+efectoancash,programacion,prog_alerta_regla,tipo,varchar(12),,,,Alerta / Incidencia / Ambos
+efectoancash,programacion,prog_alerta_regla,nivel_semaforo_min_id,int,,core_catalogo_item.id,,severidad mínima (Informativo..Prioritario)
+efectoancash,programacion,prog_alerta_regla,roles_destino,varchar(160),,,,"códigos core_rol separados por coma: ct, jefe_territorial, formacion…"
+efectoancash,programacion,prog_alerta_regla,incluir_jefe,bit,,,,añadir Jefe Territorial del programa
+efectoancash,programacion,prog_alerta_regla,canal,varchar(20),,,,push / telegram / whatsapp / email
+efectoancash,programacion,prog_alerta_regla,escalar_minutos,int,,,,re-notificar si no se atiende en N min
+efectoancash,programacion,prog_alerta_regla,activo,bit,,,,
+efectoancash,programacion,prog_notificacion,id,int,S,,,
+efectoancash,programacion,prog_notificacion,incidencia_id,int,,prog_incidencia.id,,
+efectoancash,programacion,prog_notificacion,regla_id,int,,prog_alerta_regla.id,,
+efectoancash,programacion,prog_notificacion,destinatario_id,int,,core_usuario.id,S,
+efectoancash,programacion,prog_notificacion,canal,varchar(20),,,,
+efectoancash,programacion,prog_notificacion,asunto,nvarchar(200),,,,
+efectoancash,programacion,prog_notificacion,cuerpo,nvarchar(max),,,,
+efectoancash,programacion,prog_notificacion,estado,varchar(12),,,,pendiente / enviado / error
+efectoancash,programacion,prog_notificacion,intentos,smallint,,,,
+efectoancash,programacion,prog_notificacion,enviado_en,datetime2,,,,
+efectoancash,programacion,prog_notificacion,error,nvarchar(400),,,,
+efectoancash,programacion,prog_notificacion,creado_en,datetime2,,,,
+efectoancash,instrumentos,inst_instrumento,id,int,S,,,
+efectoancash,instrumentos,inst_instrumento,proyecto_id,int,,core_proyecto.id,,
+efectoancash,instrumentos,inst_instrumento,codigo,varchar(40),,,S,"CCA_DOCENTES, MS_FAMILIAS, SATISFACCION..."
+efectoancash,instrumentos,inst_instrumento,nombre,nvarchar(160),,,S,
+efectoancash,instrumentos,inst_instrumento,publico,varchar(20),,,,docentes/familias/estudiantes/asistentes
+efectoancash,instrumentos,inst_instrumento,n_preguntas,smallint,,,,
+efectoancash,instrumentos,inst_item,id,int,S,,,
+efectoancash,instrumentos,inst_item,instrumento_id,int,,inst_instrumento.id,S,
+efectoancash,instrumentos,inst_item,bloque,nvarchar(60),,,,Bloq_1..5 en MS
+efectoancash,instrumentos,inst_item,orden,smallint,,,S,
+efectoancash,instrumentos,inst_item,codigo,varchar(20),,,,"Preg_1, Pregunta_abierta_1"
+efectoancash,instrumentos,inst_item,texto,nvarchar(400),,,,
+efectoancash,instrumentos,inst_item,tipo_respuesta,varchar(20),,,,escala/opcion/abierta/indicador
+efectoancash,instrumentos,inst_intento,id,int,S,,,
+efectoancash,instrumentos,inst_intento,instrumento_id,int,,inst_instrumento.id,S,
+efectoancash,instrumentos,inst_intento,ie_id,int,,core_ie.id,,
+efectoancash,instrumentos,inst_intento,persona_id,int,,core_persona.id,,respondente (o NULL si es roster)
+efectoancash,instrumentos,inst_intento,corte_id,int,,core_catalogo_item.id,,Pre test / Post test
+efectoancash,instrumentos,inst_intento,fecha_aplicacion,date,,,,
+efectoancash,instrumentos,inst_intento,facilitador_id,int,,core_persona.id,,
+efectoancash,instrumentos,inst_respuesta,id,bigint,S,,,
+efectoancash,instrumentos,inst_respuesta,intento_id,int,,inst_intento.id,S,
+efectoancash,instrumentos,inst_respuesta,item_id,int,,inst_item.id,S,
+efectoancash,instrumentos,inst_respuesta,valor_texto,nvarchar(600),,,,
+efectoancash,instrumentos,inst_respuesta,valor_num,"decimal(6,2)",,,,
+efectoancash,cca,cca_roster,id,int,S,,,
+efectoancash,cca,cca_roster,ie_id,int,,core_ie.id,S,
+efectoancash,cca,cca_roster,persona_id,int,,core_persona.id,,NULL hasta consolidar persona por DNI
+efectoancash,cca,cca_roster,apellidos,nvarchar(120),,,,
+efectoancash,cca,cca_roster,nombres,nvarchar(120),,,,
+efectoancash,cca,cca_roster,dni,varchar(12),,,,
+efectoancash,cca,cca_roster,parentesco_id,int,,core_catalogo_item.id,,
+efectoancash,cca,cca_roster,estudiante_relacionado,nvarchar(160),,,,texto libre (nombre del hijo/a)
+efectoancash,cca,cca_roster,activo,bit,,,,
+efectoancash,cca,cca_sesion,id,int,S,,,
+efectoancash,cca,cca_sesion,core_sesion_id,int,,core_sesion.id,,
+efectoancash,cca,cca_sesion,ie_id,int,,core_ie.id,S,
+efectoancash,cca,cca_sesion,etapa_id,int,,core_etapa.id,,
+efectoancash,cca,cca_sesion,ciclo,smallint,,,,
+efectoancash,cca,cca_sesion,tema,nvarchar(200),,,,
+efectoancash,cca,cca_sesion,publico_id,int,,core_catalogo_item.id,,
+efectoancash,cca,cca_sesion,asist_familias,int,,,,
+efectoancash,cca,cca_sesion,asist_docentes,int,,,,
+efectoancash,cca,cca_sesion,asist_otros_cant,int,,,,
+efectoancash,cca,cca_sesion,asist_otros_texto,nvarchar(120),,,,
+efectoancash,cca,cca_sesion,desarrollo,nvarchar(max),,,,
+efectoancash,cca,cca_sesion,incidencia_sn,bit,,,,
+efectoancash,cca,cca_sesion,descripcion_incidencia,nvarchar(max),,,,
+efectoancash,cca,cca_sesion,atencion_adicional,nvarchar(max),,,,
+efectoancash,cca,cca_asistencia,id,bigint,S,,,
+efectoancash,cca,cca_asistencia,cca_sesion_id,int,,cca_sesion.id,S,
+efectoancash,cca,cca_asistencia,roster_id,int,,cca_roster.id,S,
+efectoancash,cca,cca_asistencia,asistio,bit,,,,
+efectoancash,cca,cca_asistencia,intento_satisfaccion_id,int,,inst_intento.id,,Item_1..5 + Sugerencias (ítems de SATISFACCION)
+efectoancash,cca,cca_seguimiento_ie,id,int,S,,,
+efectoancash,cca,cca_seguimiento_ie,ie_id,int,,core_ie.id,S,
+efectoancash,cca,cca_seguimiento_ie,hito_id,int,,core_catalogo_item.id,,
+efectoancash,cca,cca_seguimiento_ie,estado_id,int,,core_catalogo_item.id,,
+efectoancash,cca,cca_seguimiento_ie,fecha,date,,,,
+efectoancash,cca,cca_seguimiento_ie,responsable_id,int,,core_usuario.id,,
+efectoancash,mente_sana,ms_roster,id,int,S,,,
+efectoancash,mente_sana,ms_roster,ie_id,int,,core_ie.id,S,
+efectoancash,mente_sana,ms_roster,grado,nvarchar(20),,,,
+efectoancash,mente_sana,ms_roster,persona_id,int,,core_persona.id,,
+efectoancash,mente_sana,ms_roster,apellidos_nombres,nvarchar(200),,,,
+efectoancash,mente_sana,ms_roster,activo,bit,,,,
+efectoancash,mente_sana,ms_sesion,id,int,S,,,
+efectoancash,mente_sana,ms_sesion,core_sesion_id,int,,core_sesion.id,,
+efectoancash,mente_sana,ms_sesion,ie_id,int,,core_ie.id,S,
+efectoancash,mente_sana,ms_sesion,grado,nvarchar(20),,,,
+efectoancash,mente_sana,ms_sesion,etapa_id,int,,core_etapa.id,,
+efectoancash,mente_sana,ms_sesion,tema,nvarchar(200),,,,
+efectoancash,mente_sana,ms_sesion,asist_estudiantes,int,,,,
+efectoancash,mente_sana,ms_sesion,asist_familias,int,,,,
+efectoancash,mente_sana,ms_sesion,asist_docentes,int,,,,
+efectoancash,mente_sana,ms_sesion,asist_otros_cant,int,,,,
+efectoancash,mente_sana,ms_sesion,asist_otros_texto,nvarchar(120),,,,
+efectoancash,mente_sana,ms_sesion,desarrollo,nvarchar(max),,,,
+efectoancash,mente_sana,ms_sesion,incidencia_sn,bit,,,,
+efectoancash,mente_sana,ms_sesion,descripcion_incidencia,nvarchar(max),,,,
+efectoancash,mente_sana,ms_asistencia,id,bigint,S,,,
+efectoancash,mente_sana,ms_asistencia,ms_sesion_id,int,,ms_sesion.id,S,
+efectoancash,mente_sana,ms_asistencia,roster_id,int,,ms_roster.id,S,
+efectoancash,mente_sana,ms_asistencia,asistio,bit,,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,id,int,S,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,ie_id,int,,core_ie.id,S,
+efectoancash,mente_sana,ms_evaluacion_estudiante,grado,nvarchar(20),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,seccion,nvarchar(10),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,persona_id,int,,core_persona.id,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,intento_id,int,,inst_intento.id,,corte + IE + facilitador
+efectoancash,mente_sana,ms_evaluacion_estudiante,lenguaje_corporal,varchar(20),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,contacto_visual,varchar(20),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,tono_volumen_voz,varchar(20),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,tiempo_reaccion,varchar(20),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,interaccion_material,varchar(20),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,conducta_social,varchar(20),,,,
+efectoancash,mente_sana,ms_evaluacion_estudiante,comentario,nvarchar(max),,,,
+efectoancash,pdle,pdle_programa_sesion,id,int,S,,,
+efectoancash,pdle,pdle_programa_sesion,core_sesion_id,int,,core_sesion.id,,
+efectoancash,pdle,pdle_programa_sesion,ie_id,int,,core_ie.id,S,
+efectoancash,pdle,pdle_programa_sesion,etapa_id,int,,core_etapa.id,,
+efectoancash,pdle,pdle_programa_sesion,tema,nvarchar(200),,,,
+efectoancash,pdle,pdle_programa_sesion,n_participantes,int,,,,
+efectoancash,pdle,pdle_participante,id,int,S,,,
+efectoancash,pdle,pdle_participante,pdle_programa_sesion_id,int,,pdle_programa_sesion.id,S,
+efectoancash,pdle,pdle_participante,persona_id,int,,core_persona.id,,
+efectoancash,pdle,pdle_participante,rol_liderazgo,nvarchar(80),,,,
+efectoancash,pdle,pdle_participante,asistio,bit,,,,
+efectoancash,pdle,pdle_evaluacion,id,bigint,S,,,
+efectoancash,pdle,pdle_evaluacion,participante_id,int,,pdle_participante.id,,
+efectoancash,pdle,pdle_evaluacion,intento_id,int,,inst_intento.id,,
+efectoancash,pdle,pdle_evaluacion,indicador,nvarchar(120),,,,
+efectoancash,pdle,pdle_evaluacion,valor,"decimal(6,2)",,,,
+efectoancash,academia_juvenil,aj_habilidad,id,int,S,,,
+efectoancash,academia_juvenil,aj_habilidad,codigo,varchar(30),,,S,
+efectoancash,academia_juvenil,aj_habilidad,nombre,nvarchar(120),,,S,
+efectoancash,academia_juvenil,aj_habilidad,orden,smallint,,,,
+efectoancash,academia_juvenil,aj_participante,id,int,S,,,
+efectoancash,academia_juvenil,aj_participante,ie_id,int,,core_ie.id,,
+efectoancash,academia_juvenil,aj_participante,persona_id,int,,core_persona.id,,
+efectoancash,academia_juvenil,aj_participante,cohorte,varchar(20),,,,
+efectoancash,academia_juvenil,aj_participante,activo,bit,,,,
+efectoancash,academia_juvenil,aj_evaluacion_habilidad,id,bigint,S,,,
+efectoancash,academia_juvenil,aj_evaluacion_habilidad,participante_id,int,,aj_participante.id,S,
+efectoancash,academia_juvenil,aj_evaluacion_habilidad,habilidad_id,int,,aj_habilidad.id,S,
+efectoancash,academia_juvenil,aj_evaluacion_habilidad,corte_id,int,,core_catalogo_item.id,,
+efectoancash,academia_juvenil,aj_evaluacion_habilidad,valor,"decimal(6,2)",,,,
+efectoancash,academia_juvenil,aj_cartilla,id,int,S,,,
+efectoancash,academia_juvenil,aj_cartilla,participante_id,int,,aj_participante.id,S,
+efectoancash,academia_juvenil,aj_cartilla,periodo_id,int,,core_periodo.id,,
+efectoancash,academia_juvenil,aj_cartilla,semaforo_id,int,,core_catalogo_item.id,,
+efectoancash,academia_juvenil,aj_cartilla,url,nvarchar(500),,,,
+efectoancash,ui,ui_idioma,id,int,S,,,
+efectoancash,ui,ui_idioma,codigo,varchar(8),,,S,"es, en, qu (ISO 639-1)"
+efectoancash,ui,ui_idioma,nombre,nvarchar(60),,,S,
+efectoancash,ui,ui_idioma,activo,bit,,,,
+efectoancash,ui,ui_texto,id,int,S,,,
+efectoancash,ui,ui_texto,clave,varchar(120),,,S,"ej. login.titulo, nav.programacion"
+efectoancash,ui,ui_texto,idioma_id,int,,ui_idioma.id,S,
+efectoancash,ui,ui_texto,valor,nvarchar(1000),,,S,
+efectoancash,ui,ui_texto,contexto,varchar(60),,,,"agrupador: login, nav, cca, ms, indicadores..."
+efectoancash,ui,ui_texto,nota,nvarchar(300),,,,
+efectoancash,ui,ui_tema,id,int,S,,,
+efectoancash,ui,ui_tema,codigo,varchar(40),,,S,"base, alto-contraste, oscuro..."
+efectoancash,ui,ui_tema,nombre,nvarchar(80),,,S,
+efectoancash,ui,ui_tema,es_default,bit,,,,
+efectoancash,ui,ui_tema,activo,bit,,,,
+efectoancash,ui,ui_tema_token,id,int,S,,,
+efectoancash,ui,ui_tema_token,tema_id,int,,ui_tema.id,S,
+efectoancash,ui,ui_tema_token,token,varchar(60),,,S,"ej. --fuente-base, --fs-lg, --color-primario"
+efectoancash,ui,ui_tema_token,valor,varchar(200),,,S,
+efectoancash,ui,ui_tema_token,tipo,varchar(20),,,,font | size | color | spacing | radius | shadow
+efectoancash,ui,ui_tema_token,grupo,varchar(40),,,,"tipografia, color, layout..."
+efectoancash,ui,ui_tema_token,nota,nvarchar(300),,,,
+efectoancash,ui,ui_vista,id,int,S,,,
+efectoancash,ui,ui_vista,codigo,varchar(40),,,S,"programacion, cca, mente_sana, indicadores..."
+efectoancash,ui,ui_vista,ruta,varchar(120),,,,hash route o path
+efectoancash,ui,ui_vista,titulo_clave,varchar(120),,,,clave en ui_texto (no texto duro)
+efectoancash,ui,ui_vista,icono,varchar(60),,,,
+efectoancash,ui,ui_vista,orden,int,,,,
+efectoancash,ui,ui_vista,activo,bit,,,,
+efectoancash,ui,ui_vista,rol_id,int,,core_rol.id,,NULL = todos
+efectoancash,ui,ui_bloque,id,int,S,,,
+efectoancash,ui,ui_bloque,vista_id,int,,ui_vista.id,S,
+efectoancash,ui,ui_bloque,codigo,varchar(60),,,S,
+efectoancash,ui,ui_bloque,titulo_clave,varchar(120),,,,
+efectoancash,ui,ui_bloque,tipo,varchar(30),,,,kpis | filtros | tabla | grafico | formulario | agenda
+efectoancash,ui,ui_bloque,orden,int,,,,
+efectoancash,ui,ui_bloque,fijo,bit,,,,sticky
+efectoancash,ui,ui_bloque,visible,bit,,,,
+efectoancash,ui,ui_bloque,ancho,varchar(12),,,,full | half | third
+efectoancash,ui,ui_bloque,config,nvarchar(max),,,,JSON libre del bloque
+efectoancash,ui,ui_elemento,id,int,S,,,
+efectoancash,ui,ui_elemento,bloque_id,int,,ui_bloque.id,S,
+efectoancash,ui,ui_elemento,clave,varchar(60),,,S,
+efectoancash,ui,ui_elemento,tipo,varchar(30),,,,kpi | barra | linea | tabla_col | campo
+efectoancash,ui,ui_elemento,titulo_clave,varchar(120),,,,
+efectoancash,ui,ui_elemento,fuente_dato,varchar(120),,,,vista/consulta (ej. vw_resumen_ct)
+efectoancash,ui,ui_elemento,orden,int,,,,
+efectoancash,ui,ui_elemento,visible,bit,,,,
+efectoancash,ui,ui_elemento,config,nvarchar(max),,,,"JSON: umbrales, formato, colores"
